@@ -1,5 +1,6 @@
 package com.SkyFlyGame.SkywardTreasure
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,13 +16,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-@Preview
 @Composable
-fun MenuScreen(){
+fun MenuScreen(
+    onStart: () -> Unit,
+    onSettings: () -> Unit
+){
+    val context = LocalContext.current as Activity
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -44,7 +49,7 @@ fun MenuScreen(){
                 modifier = Modifier
                     .size(width = 200.dp, height = 100.dp)
                     .clickable {
-
+                        onStart()
                     }
             )
             Image(
@@ -53,7 +58,7 @@ fun MenuScreen(){
                 modifier = Modifier
                     .size(width = 200.dp, height = 100.dp)
                     .clickable {
-
+                        onSettings()
                     }
             )
 
@@ -65,7 +70,7 @@ fun MenuScreen(){
                 modifier = Modifier
                     .size(width = 150.dp, height = 80.dp)
                     .clickable {
-
+                        context.finishAffinity()
                     }
             )
         }
