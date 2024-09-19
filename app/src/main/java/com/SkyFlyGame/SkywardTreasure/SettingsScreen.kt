@@ -104,7 +104,7 @@ fun SettingsScreen() {
             modifier = Modifier
                 .size(100.dp)
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp)
+                .padding(bottom = 31.dp)
                 .clickable {
 
                 }
