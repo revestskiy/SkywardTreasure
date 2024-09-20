@@ -3,7 +3,9 @@ package com.SkyFlyGame.SkywardTreasure
 import android.os.Parcelable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,7 +51,9 @@ fun LevelCompleteScreen(
     targetScore: Int = 50,
     timer: Int = 20,
     onMenu: () -> Unit = {},
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onRetry: () -> Unit = {},
+    onNext: () -> Unit = {}
 ) {
     // Main background with image
     Box(
@@ -72,11 +77,17 @@ fun LevelCompleteScreen(
         ) {
             Box(
                 modifier = Modifier
+                    .fillMaxWidth(0.8f)
                     .background(
-                        color = Color(0xFFB3E5FC),
+                        color = Color(0xFFD6FAFF),
                         shape = RoundedCornerShape(10.dp)
                     )
-                    .padding(16.dp)
+                    .border(
+                        width = 5.dp,
+                        color = Color.Black,
+                        shape = RoundedCornerShape(10.dp)
+                    )
+
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -86,8 +97,14 @@ fun LevelCompleteScreen(
                         fontWeight = FontWeight.Bold,
                         fontSize = 28.sp,
                         modifier = Modifier
+                            .fillMaxWidth()
                             .background(
-                                color = Color(0xFF0288D1),
+                                color = Color(0xFFD6FAFF),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .border(
+                                width = 5.dp,
+                                color = Color.Black,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .padding(8.dp)
@@ -95,12 +112,13 @@ fun LevelCompleteScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     TextWithShadowAndOutline(
                         text = "Timer: ${timer.millisFormatted}s",
-                        fontSize = 24.sp,
+                        fontSize = 32.sp,
                     )
                     TextWithShadowAndOutline(
                         text = "Score: $score/$targetScore",
-                        fontSize = 24.sp,
+                        fontSize = 32.sp,
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
 
@@ -112,8 +130,12 @@ fun LevelCompleteScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
-                    .clickable {
-                        onBack()  // Функция, которая будет вызвана при нажатии
+                    .clickableWithoutRipple {
+                        if (isWin) {
+                            onNext()
+                        } else {
+                            onRetry()
+                        }
                     }
             )
 
@@ -126,10 +148,20 @@ fun LevelCompleteScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
-                    .clickable {
+                    .clickableWithoutRipple {
                         onMenu()
                     }
             )
         }
     }
 }
+@Composable
+fun Modifier.clickableWithoutRipple(
+    onClick: () -> Unit
+) = then(
+    Modifier.clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null,
+        onClick = onClick
+    )
+)

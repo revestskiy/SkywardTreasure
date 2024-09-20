@@ -57,7 +57,7 @@ fun MenuScreen(
                 contentDescription = "Start Button",
                 modifier = Modifier
                     .size(width = 200.dp, height = 100.dp)
-                    .clickable {
+                    .clickableWithoutRipple {
                         onSettings()
                     }
             )
@@ -69,7 +69,7 @@ fun MenuScreen(
                 contentDescription = "Exit Button",
                 modifier = Modifier
                     .size(width = 150.dp, height = 80.dp)
-                    .clickable {
+                    .clickableWithoutRipple {
                         context.finishAffinity()
                     }
             )

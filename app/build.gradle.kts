@@ -21,15 +21,29 @@ android {
         }
     }
 
+    android.signingConfigs {
+        create("release") {
+            storeFile =file("keystore.jks")
+            storePassword= "newapp"
+            keyAlias ="key0"
+            keyPassword ="newapp"
+            storeType= "jks"
+        }
+    }
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            multiDexEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8

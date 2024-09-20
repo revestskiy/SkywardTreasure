@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -29,7 +30,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-@Preview
 @Composable
 fun LevelsScreen(
     onBack: () -> Unit = {},
@@ -54,7 +54,7 @@ fun LevelsScreen(
             modifier = Modifier
                 .size(60.dp)
                 .padding(8.dp)
-                .clickable { onBack() }
+                .clickableWithoutRipple { onBack() }
                 .align(Alignment.TopStart)
         )
 
@@ -62,7 +62,9 @@ fun LevelsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 80.dp, start = 16.dp, end = 16.dp),
+                .padding(top = 80.dp, start = 16.dp, end = 16.dp)
+                .verticalScroll(androidx.compose.foundation.rememberScrollState())
+            ,
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -78,13 +80,17 @@ fun LevelsScreen(
                             modifier = Modifier
                                 .padding(4.dp)
                                 .size(width = 75.dp, height = 60.dp)
-                                .alpha(0.8f)
+                                .alpha(if (Prefs.isLevelAvailable(levelNumber)) 1f else 0.5f)
                                 .background(
                                     color = Color(0xFFD6FAFF),
                                     shape = RoundedCornerShape(8.dp)
                                 )
                                 .border(3.dp, Color.Black, RoundedCornerShape(8.dp))
-                                .clickable { onLevelSelect(levelNumber) },
+                                .clickableWithoutRipple {
+                                    if (Prefs.isLevelAvailable(levelNumber)) {
+                                        onLevelSelect(levelNumber)
+                                    }
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             // Text with shadow and outline

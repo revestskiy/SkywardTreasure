@@ -1,7 +1,6 @@
 package com.SkyFlyGame.SkywardTreasure
 
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,41 +42,16 @@ import kotlin.random.Random
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun GameScreen(
-    level: Int = 1,              // Current level
-    targetScore: Int = when (level) {
-        1 -> 10
-        2 -> 15
-        3 -> 20
-        4 -> 35
-        5 -> 40
-        6 -> 55
-        7 -> 60
-        8 -> 65
-        9 -> 70
-        10 -> 100
-        else -> 0
-    },     // Target score to win the level
+    level: Int = 1,              // Current level,
+    levelConfig: LevelConfig = getLevelConfiguration(level),
+    targetScore: Int = levelConfig.targetScore,     // Target score to win the level
     onResult: (Result) -> Unit = {},  // Callback to handle the result
     onMenu: () -> Unit = {},  // Callback to go back to the main menu
-    onBack: () -> Unit = {}     // Callback to go back to the main menu
+    onRetry: () -> Unit = {}     // Callback to go back to the main menu,
 ) {
     var score by remember { mutableIntStateOf(0) }
     var timeLeft by remember {
-        mutableIntStateOf(
-            when (level) {
-                1 -> 30000
-                2 -> 50000
-                3 -> 70000
-                4 -> 110000
-                5 -> 130000
-                6 -> 150000
-                7 -> 170000
-                8 -> 220000
-                9 -> 250000
-                10 -> 180000
-                else -> 0
-            }
-        )
+        mutableIntStateOf(levelConfig.timeLeft)
     }
     var rocketPosition by remember { mutableFloatStateOf(0f) } // Horizontal position of the rocket
     val rocketSpeed = 5f // Reduced speed for smoother movement
@@ -86,24 +60,17 @@ fun GameScreen(
     var levelCompleted by remember { mutableStateOf(false) } // Track if the level is completed
     var isMovingLeft by remember { mutableStateOf(false) }
     var isMovingRight by remember { mutableStateOf(false) }
-    var isSettings by remember { mutableStateOf(false) }
     var paused by remember { mutableStateOf(false) }
-    LaunchedEffect(key1 = timeLeft) {
-        if (timeLeft > 0) {
+    LaunchedEffect(key1 = Unit) {
+        while (timeLeft > 0) {
             delay(1000L)
-            if (!isSettings) {
+            if (!paused) {
                 timeLeft -= 1000
             }
         }
-        else {
-            gameOver = true
-        }
+        gameOver = true
     }
-    if (isSettings) {
-        BackHandler { isSettings = false }
-        SettingsScreen { isSettings = false }
-    }
-    else if (!gameOver && !levelCompleted) {
+    if (!gameOver && !levelCompleted) {
         // Game UI
         BoxWithConstraints(
             modifier = Modifier
@@ -120,7 +87,7 @@ fun GameScreen(
                 while (isMovingLeft || isMovingRight) {
                     delay(16L) // Frame delay for roughly 60 FPS
 
-                    if (isMovingLeft) {
+                    if (isMovingLeft  && !paused) {
                         // Left boundary limit
                         val leftLimit = -screenWidth + 80f
                         if (rocketPosition > leftLimit) {
@@ -132,7 +99,7 @@ fun GameScreen(
                         }
                     }
 
-                    if (isMovingRight) {
+                    if (isMovingRight  && !paused) {
                         // Right boundary limit
                         val rightLimit = screenWidth - 80f
                         if (rocketPosition < rightLimit) {
@@ -157,54 +124,9 @@ fun GameScreen(
             }
             Box(
                 modifier = Modifier
-                    .height(100.dp)
-                    .fillMaxWidth(0.9f)
-                    .paint(
-                        painterResource(id = R.drawable.bg_round),
-                        contentScale = ContentScale.FillBounds
-                    )
-                    .align(Alignment.TopCenter),
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    TextWithShadowAndOutline(
-                        text = "Timer:${timeLeft.millisFormatted}s",
-                        fontSize = 29.sp,
-                        modifier = Modifier
-                            .padding(8.dp),
-                    )
-                    TextWithShadowAndOutline(
-                        text = "Score:$score/$targetScore",
-                        fontSize = 29.sp,
-                        modifier = Modifier
-                            .padding(bottom = 8.dp),
-                    )
-                }
-                IconButton(
-                    onClick = { paused = !paused },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(2.dp)
-                        .size(52.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_stop),
-                        contentDescription = "Pause",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .alpha(if (paused) 1f else 0.5f)
-                    )
-                }
-            }
-            Box(
-                modifier = Modifier
                     .offset(
                         x = rocketPosition.dp,
-                        y = (maxHeight * 0.18f).dp
+                        y = (maxHeight * 0.11f).dp
                     )
                     .size(65.dp)
             ) {
@@ -253,16 +175,64 @@ fun GameScreen(
                         true
                     })
             }
+            Box(
+                modifier = Modifier
+                    .height(100.dp)
+                    .fillMaxWidth(0.9f)
+                    .paint(
+                        painterResource(id = R.drawable.bg_round),
+                        contentScale = ContentScale.FillBounds
+                    )
+                    .align(Alignment.TopCenter),
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    TextWithShadowAndOutline(
+                        text = "Timer:${timeLeft.millisFormatted}s",
+                        fontSize = 29.sp,
+                        modifier = Modifier
+                            .padding(8.dp),
+                    )
+                    TextWithShadowAndOutline(
+                        text = "Score:$score/$targetScore",
+                        fontSize = 29.sp,
+                        modifier = Modifier
+                            .padding(bottom = 8.dp),
+                    )
+                }
+                IconButton(
+                    onClick = { paused = !paused },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(2.dp)
+                        .size(52.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_stop),
+                        contentDescription = "Pause",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .size(32.dp)
+                            .alpha(if (!paused) 1f else 0.25f)
+                    )
+                }
+            }
             LaunchedEffect(Unit) {
-                items += itemList(level, screenWidth, maxHeight)
+                items += itemList(level, screenWidth, maxHeight, levelConfig.numberOfCoins)
                 while (timeLeft > 0) {
                     delay(10000L)
-                    items += itemList(level, screenWidth, maxHeight)
+                    if (!paused) {
+                        items += itemList(level, screenWidth, maxHeight, levelConfig.numberOfCoins)
+                    }
                 }
             }
             LaunchedEffect(Unit) {
                 while (timeLeft > 0) {
                     delay(16L)
+                    if (paused) continue
                     items = items.map { coin ->
                         val step = if (coin.drawableRes == R.drawable.coin_star) 4f else 8f
 
@@ -286,7 +256,7 @@ fun GameScreen(
                     // Collision detection and filtering out collected coins
                     items = items.filter { item ->
                         val itemCollected =
-                            item.y > (maxHeight * 0.18f) && item.y < (maxHeight * 0.18f + 80) &&
+                            item.y > (maxHeight * 0.11f) && item.y < (maxHeight * 0.11f + 80) &&
                                     abs(item.x - rocketPosition) < 50
                         val planetCollected =
                             itemCollected && item.drawableRes != R.drawable.coin_star
@@ -295,7 +265,7 @@ fun GameScreen(
                             levelCompleted = false
                         }
                         else if (itemCollected) {
-                            score += 1 // Increment score if the item is collected
+                            score += 20 // Increment score if the item is collected
                         }
                         !itemCollected // Only keep coins that are not collected
                     }
@@ -323,16 +293,6 @@ fun GameScreen(
                )
             )
         }
-        LevelCompleteScreen(
-            isWin = levelCompleted,
-            level = level,
-            score = score,
-            targetScore = targetScore,
-            timer = timeLeft,
-            onMenu = onMenu
-        ) {
-            onBack()
-        }
     }
 }
 
@@ -356,8 +316,7 @@ fun CoinItem(x: Float, y: Float, drawableRes: Int = R.drawable.coin_star) {
 }
 
 // Function to generate initial set of coins based on the level
-fun itemList(level: Int, screenWidth: Float, height: Int): List<Item> {
-    val numberOfCoins = 3 + level // Increase the number of coins per level
+fun itemList(level: Int, screenWidth: Float, height: Int, numberOfCoins: Int): List<Item> {
     val listDrawables = listOf(
         R.drawable.coin_star,
         R.drawable.dart,
@@ -372,6 +331,42 @@ fun itemList(level: Int, screenWidth: Float, height: Int): List<Item> {
         ) // Coins spawn off-screen above the visible area
     }
 }
+
+fun getLevelConfiguration(level: Int): LevelConfig {
+    return when (level) {
+        in 1..10 -> LevelConfig(
+            targetScore = 100 + (level - 1) * 20, // увеличение цели на 50 очков за уровень
+            timeLeft = 30000 + (level - 1) * 2000, // уменьшение времени на 2 секунды за уровень
+            numberOfCoins = 3 + level // увеличение количества монет
+        )
+        in 11..20 -> LevelConfig(
+            targetScore = 600 + (level - 11) * 30, // увеличение цели на 60 очков за уровень
+            timeLeft = 28000 + (level - 11) * 1500, // уменьшение времени на 1.5 секунды за уровень
+            numberOfCoins = 10 + (level - 11) // больше монет
+        )
+        in 21..30 -> LevelConfig(
+            targetScore = 1200 + (level - 21) * 40,
+            timeLeft = 25000 + (level - 21) * 1000,
+            numberOfCoins = 15 + (level - 21)
+        )
+        in 31..40 -> LevelConfig(
+            targetScore = 1900 + (level - 31) * 80,
+            timeLeft = 22000 + (level - 31) * 500,
+            numberOfCoins = 20 + (level - 31)
+        )
+        else -> LevelConfig(
+            targetScore = 0,
+            timeLeft = 0,
+            numberOfCoins = 0
+        )
+    }
+}
+
+data class LevelConfig(
+    val targetScore: Int,    // Цель по очкам для победы
+    val timeLeft: Int,       // Время на прохождение уровня в миллисекундах
+    val numberOfCoins: Int   // Количество монет, которые нужно собрать
+)
 
 val Number.millisFormatted: String
     get() = SimpleDateFormat("mm:ss", Locale.getDefault()).format(this)

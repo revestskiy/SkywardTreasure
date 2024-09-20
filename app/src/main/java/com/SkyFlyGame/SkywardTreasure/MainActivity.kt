@@ -56,36 +56,47 @@ class MainActivity : ComponentActivity() {
                         MenuScreen(
                             onStart = {
                                 navController.navigate("levels")
+                                SoundManager.playSound()
                             },
                             onSettings = {
                                 navController.navigate("settings")
+                                SoundManager.playSound()
                             }
                         )
                     }
                     composable("levels") {
-                        LevelsScreen {
-                            navController.navigate("game/$it")
+                        LevelsScreen(
+                            onBack = {
+                                navController.popBackStack()
+                                SoundManager.playSound()
+                            }
+                        ) {
+                            SoundManager.playSound()
+                            navController.navigate("game/$it") {
+                                popUpTo("game/$it") {
+                                    inclusive = true
+                                }
+                            }
                         }
                     }
                     composable("settings") {
-                        SettingsScreen(navController::popBackStack)
+                        SettingsScreen {
+                            SoundManager.playSound()
+                            navController.popBackStack()
+                        }
                     }
                     composable("game/{level}") {
                         val level = it.arguments?.getString("level")?.toInt()!!
                         GameScreen(
                             level = level,
                             onMenu = {
-                                navController.navigate("menu") {
-                                    popUpTo("game/$level") {
-                                        inclusive = true
-                                    }
-                                }
+                                SoundManager.playSound()
+                                navController.popBackStack()
                             },
                             onResult = { result ->
                                 val json = Uri.encode(Gson().toJson(result))
                                 navController.navigate("result/$json")
                             },
-                            onBack = navController::popBackStack
                         )
                     }
                     composable(route = "result/{result}",
@@ -106,18 +117,49 @@ class MainActivity : ComponentActivity() {
                             targetScore = result.targetScore,
                             timer = result.timer,
                             onMenu = {
+                                SoundManager.playSound()
                                 navController.navigate("menu") {
-                                    popUpTo("result/$result") {
+                                    popUpTo("game/${result.level}") {
                                         inclusive = true
                                     }
                                 }
-                            }) {
-                            navController.popBackStack()
-                        }
+                            },
+                            onRetry = {
+                                SoundManager.playSound()
+                                navController.navigate("game/${result.level}") {
+                                    popUpTo("game/${result.level}") {
+                                        inclusive = true
+                                    }
+                                }
+                            },
+                            onNext = {
+                                SoundManager.playSound()
+                                navController.navigate("game/${result.level + 1}") {
+                                    popUpTo("game/${result.level}") {
+                                        inclusive = true
+                                    }
+                                }
+                            }
+                        )
                     }
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        SoundManager.resumeMusic()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        SoundManager.pauseMusic()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        SoundManager.onDestroy()
     }
 }
 
@@ -146,8 +188,8 @@ fun LoadingScreen(
             progress = { progress },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .height(50.dp)
-                .padding(bottom = 32.dp),
+                .height(60.dp)
+                .padding(bottom = 60.dp),
             color = SkyColor,
             trackColor = GrayColor,
             strokeCap = StrokeCap.Round
