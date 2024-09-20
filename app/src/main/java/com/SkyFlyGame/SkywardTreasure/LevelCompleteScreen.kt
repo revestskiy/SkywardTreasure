@@ -3,6 +3,7 @@ package com.SkyFlyGame.SkywardTreasure
 import android.os.Parcelable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -22,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.parcelize.Parcelize
@@ -35,15 +38,17 @@ data class Result(
     val timer: Int
 ) : Parcelable
 
+
+@Preview
 @Composable
 fun LevelCompleteScreen(
-    isWin: Boolean,
-    level: Int,
-    score: Int,
-    targetScore: Int,
-    timer: Int,
-    onMenu: () -> Unit,
-    onBack: () -> Unit
+    isWin: Boolean = true,
+    level: Int = 1,
+    score: Int = 50,
+    targetScore: Int = 50,
+    timer: Int = 20,
+    onMenu: () -> Unit = {},
+    onBack: () -> Unit = {}
 ) {
     // Main background with image
     Box(
@@ -101,30 +106,30 @@ fun LevelCompleteScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(
-                onClick = { onBack() },
+            Image(
+                painter = painterResource(id = if (isWin) R.drawable.nextbutton else R.drawable.retrybutton),
+                contentDescription = if (isWin) "Next Button" else "Retry Button",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB3E5FC))
-            ) {
-                TextWithShadowAndOutline(
-                    text = if (isWin) "Next" else "Retry",
-                    fontSize = 20.sp,
-                )
-            }
+                    .height(50.dp)
+                    .clickable {
+                        onBack()  // Функция, которая будет вызвана при нажатии
+                    }
+            )
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { onMenu() },
+            Image(
+                painter = painterResource(id = R.drawable.menubutton),
+                contentDescription = "Menu Button",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB3E5FC))
-            ) {
-                Text(text = "Menu", fontSize = 20.sp, color = Color.Black)
-            }
+                    .height(50.dp)
+                    .clickable {
+                        onMenu()
+                    }
+            )
         }
     }
 }
